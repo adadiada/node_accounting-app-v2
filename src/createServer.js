@@ -8,7 +8,6 @@ function createServer() {
   const app = express();
 
   app.use(express.json());
-  // app.use('/expenses', expreseRouter);
   app.use(cors());
 
   // const expreseRouter = express.Router();
@@ -22,7 +21,7 @@ function createServer() {
   const expenses = [];
 
   app.get('/expenses', (req, res) => {
-    return res.send('Hello');
+    return res.json(expenses);
   });
 
   app.get('/expenses/:id', (req, res) => {
@@ -30,7 +29,7 @@ function createServer() {
     const expense = expenses.find((e) => e.id === id);
 
     if (!expense) {
-      return res.sendStatus(404).send({ message: 'Not found' });
+      return res.status(404).send({ message: 'Not found' });
     }
     res.send(expense);
   });
@@ -38,8 +37,8 @@ function createServer() {
   app.post('/expenses', (req, res) => {
     const newExpense = { ...req.body, id: Date.now().toString() };
 
-    if (!newExpense) {
-      res.sendStatus(400).send({ message: 'Bad request' });
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).send({ message: 'Bad request' });
     }
     expenses.push(newExpense);
     res.status(201).json(newExpense);
@@ -50,12 +49,12 @@ function createServer() {
     const index = expenses.findIndex((ex) => ex.id === id);
 
     if (index === -1) {
-      res.sendStatus(404).send({ message: 'Not found' });
+      return res.status(404).send({ message: 'Not found' });
     }
 
     const newExpenseDelete = expenses.splice(index, 1);
 
-    return newExpenseDelete;
+    return res.json(newExpenseDelete);
   });
 
   app.patch('/expenses/:id', (req, res) => {
@@ -64,8 +63,65 @@ function createServer() {
     const expensUpdate = expenses.find((e) => e.id === id);
 
     if (!expensUpdate) {
-      res.sendStatus(404).send({ message: 'Not found' });
+      return res.status(404).send({ message: 'Not found' });
     }
+
+    Object.assign(expensUpdate, req.body);
+    res.json(expensUpdate);
+  });
+
+  // region users # //
+
+  const users = [];
+
+  app.get('/users', (req, res) => {
+    return res.send(users);
+  });
+
+  app.get('/users/:id', (req, res) => {
+    const { id } = req.params;
+    const user = users.find((u) => u.id === id);
+
+    if (!user) {
+      return res.status(404).send({ message: 'Not found' });
+    }
+    res.send(user);
+  });
+
+  app.post('/users', (req, res) => {
+    const newUser = { ...req.body, id: Date.now().toString() };
+
+    if (!newUser) {
+      return res.status(400).send({ message: 'Bad request' });
+    }
+    users.push(newUser);
+    res.status(201).json(newUser);
+  });
+
+  app.delete('/users/:id', (req, res) => {
+    const { id } = req.params;
+    const index = users.findIndex((u) => u.id === id);
+
+    if (index === -1) {
+      return res.status(404).send({ message: 'Not found' });
+    }
+
+    const newUserDelete = users.splice(index, 1);
+
+    return res.json(newUserDelete);
+  });
+
+  app.patch('/users/:id', (req, res) => {
+    const { id } = req.params;
+
+    const userUpdate = users.find((u) => u.id === id);
+
+    if (!userUpdate) {
+      return res.status(404).send({ message: 'Not found' });
+    }
+
+    Object.assign(userUpdate, req.body);
+    res.json(userUpdate);
   });
 
   return app;

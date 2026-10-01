@@ -1,3 +1,3 @@
-export const get = (req, res) => {
-  res.send(expreseRouter.getAll());
-};
+// export const get = (req, res) => {
+//   res.send(expreseRouter.getAll());
+// };
