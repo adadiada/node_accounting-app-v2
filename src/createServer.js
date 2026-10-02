@@ -3,6 +3,8 @@
 const express = require('express');
 // const { expreseRouter } = require('./routers/expreseRouter');
 const cors = require('cors');
+const { expensesService } = require('./services/expense.service');
+// const { expensesController } = require('./controllers/expres.controllers');
 
 function createServer() {
   const app = express();
@@ -10,57 +12,51 @@ function createServer() {
   app.use(express.json());
   app.use(cors());
 
-  // const expreseRouter = express.Router();
-
-  // app.get('/', (req, res) => {});
-  // app.get('/:id', (req, res) => {});
-  // app.post('/', (req, res) => {});
-  // app.delete('/:id', (req, res) => {});
-  // app.patch('/:id', (req, res) => {});
-
   const expenses = [];
 
   app.get('/expenses', (req, res) => {
-    return res.json(expenses);
+    return res.send(expensesService.getAll());
   });
 
   app.get('/expenses/:id', (req, res) => {
     const { id } = req.params;
-    const expense = expenses.find((e) => e.id === id);
+    const notId = expensesService.getById(id);
 
-    if (!expense) {
+    if (!notId) {
       return res.status(404).send({ message: 'Not found' });
     }
-    res.send(expense);
+    res.send(notId);
   });
 
   app.post('/expenses', (req, res) => {
-    const newExpense = { ...req.body, id: Date.now().toString() };
+    const { expens } = req.body;
 
-    if (!req.body || Object.keys(req.body).length === 0) {
+    if (!expens) {
       return res.status(400).send({ message: 'Bad request' });
     }
-    expenses.push(newExpense);
-    res.status(201).json(newExpense);
+
+    const ex = expensesService.create(expens);
+
+    res.status(201).json(ex);
   });
 
   app.delete('/expenses/:id', (req, res) => {
     const { id } = req.params;
-    const index = expenses.findIndex((ex) => ex.id === id);
 
-    if (index === -1) {
-      return res.status(404).send({ message: 'Not found' });
+    if (!expensesService.getById(id)) {
+      res.status(404).send({ message: 'Not found' });
+
+      return;
     }
+    expensesService.deletaById(id);
 
-    const newExpenseDelete = expenses.splice(index, 1);
-
-    return res.json(newExpenseDelete);
+    return res.status(204);
   });
 
   app.patch('/expenses/:id', (req, res) => {
     const { id } = req.params;
 
-    const expensUpdate = expenses.find((e) => e.id === id);
+    const expensUpdate = expensesService.upDate(id);
 
     if (!expensUpdate) {
       return res.status(404).send({ message: 'Not found' });
